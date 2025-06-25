@@ -1,0 +1,14 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        gcloud deploy apply --file=cloudeploy.yaml --region=asia-south1 --project=mythic-beanbag-463309-e9
+
+  - name: 'gcr.io/k8s-skaffold/skaffold'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        skaffold run --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun --filename=skaffold.yaml
