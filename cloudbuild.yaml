@@ -10,7 +10,7 @@ steps:
           --region=asia-south1 \
           --project=mythic-beanbag-463309-e9
 
-  # Step 2: Download latest Skaffold (v2.16.1)
+  # Step 2: Download Skaffold (v2.16.1)
   - name: 'gcr.io/cloud-builders/curl'
     id: download-skaffold
     args:
@@ -21,17 +21,19 @@ steps:
         "/workspace/skaffold"
       ]
 
-  # ✅ Step 3: Use Ubuntu to run Skaffold
+  # ✅ Step 3: Deploy using Skaffold with verbose debug output
   - name: 'ubuntu'
     id: deploy-with-skaffold
     entrypoint: bash
     args:
       - '-c'
       - |
-        apt-get update && apt-get install -y ca-certificates && \
+        apt-get update && \
+        apt-get install -y ca-certificates && \
         chmod +x /workspace/skaffold && \
         /workspace/skaffold run \
-        --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun
+          --verbosity=debug \
+          --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun
 
 options:
   logging: CLOUD_LOGGING_ONLY
