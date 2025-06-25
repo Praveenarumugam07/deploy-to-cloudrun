@@ -10,7 +10,7 @@ build:
   googleCloudBuild:
     projectId: mythic-beanbag-463309-e9
 deploy:
-  cloudrun:
+  cloudRun:
     projectId: mythic-beanbag-463309-e9
     region: asia-south1
     serviceName: cloudrun-app
