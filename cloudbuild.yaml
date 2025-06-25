@@ -1,17 +1,28 @@
 steps:
+  # Step 1: Apply Cloud Deploy configuration (Delivery pipeline + targets)
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: bash
     args:
       - '-c'
       - |
-        gcloud deploy apply --file=cloudeploy.yaml --region=asia-south1 --project=mythic-beanbag-463309-e9
+        gcloud deploy apply \
+          --file=cloudeploy.yaml \
+          --region=asia-south1 \
+          --project=mythic-beanbag-463309-e9
 
-  - name: 'gcr.io/k8s-skaffold/skaffold'
-    entrypoint: bash
+  # Step 2: Run Skaffold using v2.10.0 which supports cloudRun
+  - name: 'gcr.io/cloud-builders/docker'
     args:
-      - '-c'
-      - |
-        skaffold run --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun --filename=skaffold.yaml
+      [
+        'run',
+        '--rm',
+        '-v', '/workspace:/workspace',
+        '-w', '/workspace',
+        'gcr.io/k8s-skaffold/skaffold:v2.10.0',
+        'skaffold',
+        'run',
+        '--default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun'
+      ]
 
 options:
   logging: CLOUD_LOGGING_ONLY
