@@ -1,7 +1,8 @@
-apiVersion: skaffold/v2beta29
+apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
   name: cloudrun-app
+
 build:
   artifacts:
     - image: asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app
@@ -11,8 +12,11 @@ build:
     projectId: mythic-beanbag-463309-e9
 
 deploy:
-  cloudRun:
-    projectId: mythic-beanbag-463309-e9
-    region: asia-south1
-    serviceName: cloudrun-app
-    allowUnauthenticated: true
+  deployer: plugin
+  plugins:
+    - name: cloudrun
+      properties:
+        projectId: mythic-beanbag-463309-e9
+        region: asia-south1
+        serviceName: cloudrun-app
+        allowUnauthenticated: true
