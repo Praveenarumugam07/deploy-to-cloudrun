@@ -1,4 +1,4 @@
-apiVersion: skaffold/v2beta29
+apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
   name: cloudrun-app
@@ -10,7 +10,7 @@ build:
   googleCloudBuild:
     projectId: mythic-beanbag-463309-e9
 deploy:
-  cloudrun:
+  cloudRun:
     projectId: mythic-beanbag-463309-e9
     region: asia-south1
     serviceName: cloudrun-app
