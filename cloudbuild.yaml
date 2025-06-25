@@ -12,5 +12,6 @@ steps:
       - '-c'
       - |
         skaffold run --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun --filename=skaffold.yaml
+
 options:
   logging: CLOUD_LOGGING_ONLY
