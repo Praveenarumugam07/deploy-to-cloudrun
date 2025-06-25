@@ -12,7 +12,7 @@ build:
     projectId: mythic-beanbag-463309-e9
 
 deploy:
-  cloudRun:
+  cloudrun:
     projectId: mythic-beanbag-463309-e9
     region: asia-south1
     serviceName: cloudrun-app
