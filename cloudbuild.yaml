@@ -1,15 +1,21 @@
 steps:
-# Step 1: Build and publish Docker image using Buildpacks
-- name: 'gcr.io/k8s-skaffold/pack'
-  entrypoint: 'pack'
+# Step 1: Docker build and push
+- name: 'gcr.io/cloud-builders/docker'
   args:
     [
       'build',
-      '--builder=gcr.io/buildpacks/builder',
-      '--publish',
+      '-t', 'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}',
+      '.'
+    ]
+  id: Docker Build
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'push',
       'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}'
     ]
-  id: Build and package app
+  id: Docker Push
 
 # Step 2: Apply Cloud Deploy configuration
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
@@ -21,19 +27,19 @@ steps:
       "--region=${_REGION}",
       "--project=mythic-beanbag-463309-e9"
     ]
-  id: Apply deploy config
+  id: Apply Deploy Config
 
-# Step 2.5: Wait for pipeline resources to settle
+# Step 2.5: Wait for pipeline setup
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   entrypoint: 'bash'
   args:
     - -c
     - |
       echo "Waiting for Cloud Deploy resources to become available..."
-      sleep 60
-  id: Wait for pipeline propagation
+      sleep 30
+  id: Wait
 
-# Step 3: Create release and trigger rollout
+# Step 3: Create release and deploy
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   entrypoint: 'gcloud'
   args:
@@ -44,7 +50,7 @@ steps:
       '--images', 'app=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}',
       '--project=mythic-beanbag-463309-e9'
     ]
-  id: Create release
+  id: Create Release
 
 options:
   logging: CLOUD_LOGGING_ONLY
