@@ -2,28 +2,37 @@ apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
   name: cloudrun-app-pipeline
-description: Cloud Run promotion pipeline
+description: Cloud Deploy pipeline for Cloud Run app
 serialPipeline:
   stages:
-    - targetId: dev
-      profiles: [dev]
-    - targetId: qa
-      profiles: [qa]
+  - targetId: dev
+    profiles: [dev]
+  - targetId: qa
+    profiles: [qa]
+  - targetId: prod
+    profiles: [prod]
 ---
-
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: dev
-description: Development stage
+description: Dev environment
+gke: {}
 run:
-  location: projects/mythic-beanbag-463309-e9/locations/asia-south1
+  location: asia-south1
 ---
-
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: qa
-description: QA stage
+description: QA environment
 run:
-  location: projects/mythic-beanbag-463309-e9/locations/asia-south1
+  location: asia-south1
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+  name: prod
+description: Prod environment
+run:
+  location: asia-south1
