@@ -21,8 +21,6 @@ metadata:
 description: Cloud Run dev environment
 run:
   location: asia-south1
-  service: app-dev
-
 ---
 
 apiVersion: deploy.cloud.google.com/v1
@@ -32,8 +30,6 @@ metadata:
 description: Cloud Run QA environment
 run:
   location: asia-south1
-  service: app-qa
-
 ---
 
 apiVersion: deploy.cloud.google.com/v1
@@ -43,4 +39,3 @@ metadata:
 description: Cloud Run prod environment
 run:
   location: asia-south1
-  service: app-prod
