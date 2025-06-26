@@ -1,39 +1,56 @@
 steps:
-  # Step 1: Apply Cloud Deploy configuration
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        gcloud deploy apply \
-          --file=cloudeploy.yaml \
-          --region=asia-south1 \
-          --project=mythic-beanbag-463309-e9
+# Step 1: Build and publish Docker image using Buildpacks
+- name: 'gcr.io/k8s-skaffold/pack'
+  entrypoint: 'pack'
+  args:
+    [
+      'build',
+      '--builder=gcr.io/buildpacks/builder',
+      '--publish',
+      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}'
+    ]
+  id: Build and package app
 
-  # Step 2: Download Skaffold (v2.16.1)
-  - name: 'gcr.io/cloud-builders/curl'
-    id: download-skaffold
-    args:
-      [
-        "-L",
-        "https://storage.googleapis.com/skaffold/releases/v2.16.1/skaffold-linux-amd64",
-        "-o",
-        "/workspace/skaffold"
-      ]
+# Step 2: Apply Cloud Deploy configuration
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  entrypoint: 'gcloud'
+  args:
+    [
+      "deploy", "apply",
+      "--file=clouddeploy.yaml",
+      "--region=${_REGION}",
+      "--project=mythic-beanbag-463309-e9"
+    ]
+  id: Apply deploy config
 
-  # ✅ Step 3: Deploy using Skaffold with verbose debug output
-  - name: 'ubuntu'
-    id: deploy-with-skaffold
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        apt-get update && \
-        apt-get install -y ca-certificates && \
-        chmod +x /workspace/skaffold && \
-        /workspace/skaffold run \
-          --verbosity=debug \
-          --default-repo=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun
+# Step 2.5: Wait for pipeline resources to settle
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      echo "Waiting for Cloud Deploy resources to become available..."
+      sleep 60
+  id: Wait for pipeline propagation
+
+# Step 3: Create release and trigger rollout
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  entrypoint: 'gcloud'
+  args:
+    [
+      'deploy', 'releases', 'create', '${_BUILD_ID}',
+      '--delivery-pipeline', 'cloudrun-app-pipeline',
+      '--region', '${_REGION}',
+      '--images', 'app=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}',
+      '--project=mythic-beanbag-463309-e9'
+    ]
+  id: Create release
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: asia-south1
+  _BUILD_ID: rel-20250625-001
+
+serviceAccount: 880653953247-compute@developer.gserviceaccount.com
