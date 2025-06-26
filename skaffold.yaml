@@ -5,7 +5,7 @@ metadata:
 
 build:
   artifacts:
-  - image: asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app
+  - image: asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app
 
 profiles:
 - name: dev
