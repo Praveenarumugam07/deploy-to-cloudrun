@@ -1,62 +1,53 @@
 steps:
-# Step 1: Docker build and push
+# Step 1: Docker Build and Push
 - name: 'gcr.io/cloud-builders/docker'
   args:
     [
-      'build',
-      '-t', 'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}',
+      'build', '-t',
+      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}',
       '.'
     ]
-  id: Docker Build
-
 - name: 'gcr.io/cloud-builders/docker'
   args:
     [
       'push',
-      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}'
+      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}'
     ]
-  id: Docker Push
 
 # Step 2: Apply Cloud Deploy configuration
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   entrypoint: 'gcloud'
   args:
     [
-      "deploy", "apply",
-      "--file=clouddeploy.yaml",
-      "--region=${_REGION}",
-      "--project=mythic-beanbag-463309-e9"
+      'deploy', 'apply',
+      '--file=clouddeploy.yaml',
+      '--region=asia-south1',
+      '--project=mythic-beanbag-463309-e9'
     ]
-  id: Apply Deploy Config
 
-# Step 2.5: Wait for pipeline setup
+# Step 3: Wait to ensure target propagation
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   entrypoint: 'bash'
   args:
     - -c
     - |
-      echo "Waiting for Cloud Deploy resources to become available..."
-      sleep 30
-  id: Wait
+      echo "Waiting for Cloud Deploy targets to propagate..."
+      sleep 60
 
-# Step 3: Create release and deploy
+# Step 4: Trigger Release
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   entrypoint: 'gcloud'
   args:
     [
       'deploy', 'releases', 'create', '${_BUILD_ID}',
       '--delivery-pipeline', 'cloudrun-app-pipeline',
-      '--region', '${_REGION}',
-      '--images', 'app=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/my-repo/app:${_BUILD_ID}',
+      '--region', 'asia-south1',
+      '--images', 'app=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}',
       '--project=mythic-beanbag-463309-e9'
     ]
-  id: Create Release
 
 options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
-  _REGION: asia-south1
   _BUILD_ID: rel-20250625-001
-
-serviceAccount: 880653953247-compute@developer.gserviceaccount.com
