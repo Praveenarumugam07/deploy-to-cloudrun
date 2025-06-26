@@ -17,7 +17,6 @@ kind: Target
 metadata:
   name: dev
 description: Dev environment
-gke: {}
 run:
   location: asia-south1
 ---
