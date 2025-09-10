@@ -20,6 +20,9 @@ metadata:
 description: Cloud Run dev environment
 run:
   location: projects/clear-booking-470907-q6/locations/us-central1
+deployParameters:
+  skaffoldFile: skaffold.yaml
+  skaffoldProfile: dev
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -28,6 +31,9 @@ metadata:
 description: Cloud Run qa environment
 run:
   location: projects/clear-booking-470907-q6/locations/us-central1
+deployParameters:
+  skaffoldFile: skaffold.yaml
+  skaffoldProfile: qa
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -36,6 +42,9 @@ metadata:
 description: Cloud Run prod environment
 run:
   location: projects/clear-booking-470907-q6/locations/us-central1
+deployParameters:
+  skaffoldFile: skaffold.yaml
+  skaffoldProfile: prod
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Automation
