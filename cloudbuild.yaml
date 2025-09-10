@@ -1,46 +1,48 @@
 steps:
-# Step 1: Docker Build
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    [
-      'build', '-t',
-      'us-central1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}',
-      '.'
-    ]
+  # Step 0: Build the Docker image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "build",
+        "-t",
+        "us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:rel-$SHORT_SHA",
+        "."
+      ]
 
-# Step 2: Docker Push
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    [
-      'push',
-      'us-central1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}'
-    ]
+  # Step 1: Push the image to Artifact Registry
+  - name: gcr.io/cloud-builders/docker
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:rel-$SHORT_SHA"
+      ]
 
-# Step 3: Apply Cloud Deploy pipeline/targets
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-  entrypoint: 'gcloud'
-  args:
-    [
-      'deploy', 'apply',
-      '--file=clouddeploy.yaml',
-      '--region=asia-south1',
-      '--project=clear-booking-470907-q6'
-    ]
+  # Step 2: Apply Cloud Deploy pipeline definition
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      [
+        "deploy",
+        "apply",
+        "--file=clouddeploy.yaml",
+        "--region=us-central1",
+        "--project=clear-booking-470907-q6"
+      ]
 
-# Step 4: Trigger Release
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-  entrypoint: 'gcloud'
-  args:
-    [
-      "deploy", "releases", "create", "${_BUILD_ID}",
-      "--delivery-pipeline", "cloudrun-pipeline",
-      "--region", "us-central1",
-      "--images", "app=us-central1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}",
-      "--project=clear-booking-470907-q6"
-    ]
-
-options:
-  logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _BUILD_ID: rel-$SHORT_SHA
+  # Step 3: Create a new Cloud Deploy release
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      [
+        "deploy",
+        "releases",
+        "create",
+        "rel-$SHORT_SHA",
+        "--delivery-pipeline",
+        "cloudrun-pipeline",
+        "--region",
+        "us-central1",
+        "--images",
+        "app=us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:rel-$SHORT_SHA",
+        "--project=clear-booking-470907-q6"
+      ]
