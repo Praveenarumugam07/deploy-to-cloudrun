@@ -1,9 +1,9 @@
-# clouddeploy.yaml - Delivery pipeline + Targets + Automation
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
   name: cloudrun-pipeline
-description: Delivery pipeline dev -> qa -> prod
+description: Cloud Run pipeline with automation
+
 serialPipeline:
   stages:
     - targetId: dev
@@ -17,39 +17,54 @@ apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: dev
-description: Development Cloud Run target
+description: Cloud Run dev environment
 run:
-  location: projects/PROJECT_ID/locations/REGION
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: qa
-description: QA Cloud Run target
+description: Cloud Run qa environment
 run:
-  location: projects/PROJECT_ID/locations/REGION
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: prod
-description: Production Cloud Run target (requires manual approval)
-requireApproval: true
+description: Cloud Run prod environment
 run:
-  location: projects/PROJECT_ID/locations/REGION
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
-# Automation: automatically promote from dev -> qa when dev rollout succeeds
 apiVersion: deploy.cloud.google.com/v1
 kind: Automation
 metadata:
-  name: cloudrun-pipeline/auto-promote-to-qa
-description: Automatically promote dev -> qa after successful dev rollout
+  name: cloudrun-pipeline/promote-dev-to-qa
+description: Auto promote from dev → qa
 suspended: false
-serviceAccount: 326372984052-compute@developer.gserviceaccount.com
+serviceAccount: automation-sa@clear-booking-470907-q6.iam.gserviceaccount.com
 selector:
   targets:
-    - id: qa
+  - id: dev
 rules:
-  - promoteReleaseRule:
-      name: "promote-to-qa"
-      source: "dev"
+- promoteReleaseRule:
+    name: auto-promote-to-qa
+    wait: 1m
+    toTargetId: qa
+---
+apiVersion: deploy.cloud.google.com/v1
+kind: Automation
+metadata:
+  name: cloudrun-pipeline/promote-qa-to-prod
+description: Auto promote from qa → prod
+suspended: false
+serviceAccount: automation-sa@clear-booking-470907-q6.iam.gserviceaccount.com
+selector:
+  targets:
+  - id: qa
+rules:
+- promoteReleaseRule:
+    name: auto-promote-to-prod
+    wait: 1m
+    toTargetId: prod
