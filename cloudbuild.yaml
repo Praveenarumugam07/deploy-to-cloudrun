@@ -1,53 +1,58 @@
+substitutions:
+  _REGION: us-central1          # change to your region
+  _REPOSITORY: my-repo          # name of Artifact Registry repo
+  _IMAGE_NAME: my-app           # image name
+  _PIPELINE_NAME: my-app-pipeline
+
 steps:
-# Step 1: Docker Build and Push
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    [
-      'build', '-t',
-      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}',
-      '.'
-    ]
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    [
-      'push',
-      'asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}'
-    ]
-
-# Step 2: Apply Cloud Deploy configuration
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-  entrypoint: 'gcloud'
-  args:
-    [
-      'deploy', 'apply',
-      '--file=clouddeploy.yaml',
-      '--region=asia-south1',
-      '--project=mythic-beanbag-463309-e9'
-    ]
-
-# Step 3: Wait to ensure target propagation
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+# Step 1) Create Artifact Registry repository if it does not exist
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'create-repo'
   entrypoint: 'bash'
   args:
-    - -c
+    - '-c'
     - |
-      echo "Waiting for Cloud Deploy targets to propagate..."
-      sleep 60
+      if ! gcloud artifacts repositories describe ${_REPOSITORY} \
+        --location=${_REGION} --project=$PROJECT_ID >/dev/null 2>&1; then
+        echo "Creating Artifact Registry repo ${_REPOSITORY} in ${_REGION}"
+        gcloud artifacts repositories create ${_REPOSITORY} \
+          --repository-format=docker \
+          --location=${_REGION} \
+          --description="Docker repo for $_IMAGE_NAME"
+      else
+        echo "Repo ${_REPOSITORY} already exists"
+      fi
 
-# Step 4: Trigger Release
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
-  entrypoint: 'gcloud'
+# Step 2) Build Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build'
+  args: [
+    'build', '-t',
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA',
+    '.'
+  ]
+
+# Step 3) Push Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'push'
+  args: [
+    'push',
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+  ]
+
+# Step 4) Create Cloud Deploy release
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'deploy'
+  entrypoint: 'bash'
   args:
-    [
-      'deploy', 'releases', 'create', '${_BUILD_ID}',
-      '--delivery-pipeline', 'cloudrun-app-pipeline',
-      '--region', 'asia-south1',
-      '--images', 'app=asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app:${_BUILD_ID}',
-      '--project=mythic-beanbag-463309-e9'
-    ]
+    - '-c'
+    - |
+      IMAGE_URI=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA
+      gcloud deploy releases create ${_PIPELINE_NAME}-release-$SHORT_SHA \
+        --project=$PROJECT_ID \
+        --region=${_REGION} \
+        --delivery-pipeline=${_PIPELINE_NAME} \
+        --images=my-app-image=$IMAGE_URI
 
-options:
-  logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _BUILD_ID: rel-20250625-002
+images:
+- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
