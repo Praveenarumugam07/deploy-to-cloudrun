@@ -1,33 +1,29 @@
-apiVersion: skaffold/v3alpha1
+apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
-  name: cloud-run-app
-
+  name: my-app
 build:
   artifacts:
-  - image: asia-south1-docker.pkg.dev/mythic-beanbag-463309-e9/deploy-to-cloudrun/cloudrun-app
-
+    - image: my-app-image
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - service-dev.yaml
+deploy:
+  cloudrun:
+    projectid: clear-booking-470907-q6
+    region: us-central1
 profiles:
-- name: dev
-  manifests:
-    rawYaml:
-    - deploy-dev.yaml
-  deploy:
-    cloudrun:
-      region: asia-south1
-
-- name: qa
-  manifests:
-    rawYaml:
-    - deploy-qa.yaml
-  deploy:
-    cloudrun:
-      region: asia-south1
-
-- name: prod
-  manifests:
-    rawYaml:
-    - deploy-prod.yaml
-  deploy:
-    cloudrun:
-      region: asia-south1
+  - name: dev
+    manifests:
+      rawYaml:
+        - service-dev.yaml
+  - name: staging
+    manifests:
+      rawYaml:
+        - service-staging.yaml
+  - name: prod
+    manifests:
+      rawYaml:
+        - service-prod.yaml
