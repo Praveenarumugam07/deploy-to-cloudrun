@@ -33,7 +33,7 @@ steps:
         gcloud deploy releases create ${_RELEASE} \
           --delivery-pipeline=${_PIPELINE} \
           --region=${_DEPLOY_REGION} \
-          --images=cloudrun-sample=${IMAGE} \
+          --images=cloudrun-sample=\${IMAGE} \
           --project=$PROJECT_ID
 
 images:
