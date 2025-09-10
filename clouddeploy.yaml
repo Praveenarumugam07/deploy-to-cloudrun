@@ -1,7 +1,7 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
-  name: cloudrun-pipeline
+  name: cloudrun-app-pipeline
 description: Cloud Run pipeline with automation
 
 serialPipeline:
@@ -12,25 +12,6 @@ serialPipeline:
       profiles: [qa]
     - targetId: prod
       profiles: [prod]
-      strategy:
-        canary:
-          runtimeConfig:
-            cloudRun:
-              automaticTrafficControl: true
-          customCanaryDeployment:
-            phaseConfigs:
-              - phaseId: "warmup-cr"
-                percentage: 10
-                profiles: ["prod"]
-                verify: true
-              - phaseId: "scaling-cr"
-                percentage: 50
-                profiles: ["prod"]
-                verify: true
-              - phaseId: "stable"
-                percentage: 100
-                profiles: ["prod"]
-                verify: true
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -38,7 +19,7 @@ metadata:
   name: dev
 description: Cloud Run dev environment
 run:
-  location: projects/clear-booking-470907-q6/locations/us-central1
+  location: projects/clear-booking-470907-q6/locations/asia-south1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -46,7 +27,7 @@ metadata:
   name: qa
 description: Cloud Run qa environment
 run:
-  location: projects/clear-booking-470907-q6/locations/us-central1
+  location: projects/clear-booking-470907-q6/locations/asia-south1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -54,15 +35,15 @@ metadata:
   name: prod
 description: Cloud Run prod environment
 run:
-  location: projects/clear-booking-470907-q6/locations/us-central1
+  location: projects/clear-booking-470907-q6/locations/asia-south1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Automation
 metadata:
-  name: cloudrun-pipeline/promote-dev-to-qa
+  name: cloudrun-app-pipeline/promote-dev-to-qa
 description: Auto promote from dev → qa
 suspended: false
-serviceAccount: automation-sa@clear-booking-470907-q6.iam.gserviceaccount.com
+serviceAccount: 326372984052-compute@developer.gserviceaccount.com
 selector:
   targets:
   - id: dev
@@ -75,10 +56,10 @@ rules:
 apiVersion: deploy.cloud.google.com/v1
 kind: Automation
 metadata:
-  name: cloudrun-pipeline/promote-qa-to-prod
+  name: cloudrun-app-pipeline/promote-qa-to-prod
 description: Auto promote from qa → prod
 suspended: false
-serviceAccount: automation-sa@clear-booking-470907-q6.iam.gserviceaccount.com
+serviceAccount: 326372984052-compute@developer.gserviceaccount.com
 selector:
   targets:
   - id: qa
