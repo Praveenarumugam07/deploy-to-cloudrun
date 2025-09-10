@@ -1,33 +1,30 @@
-apiVersion: skaffold/v3alpha1
+apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
   name: cloud-run-app
 
 build:
   artifacts:
-  - image: us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app
+    - image: us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app
 
 profiles:
 - name: dev
-  manifests:
-    rawYaml:
-    - deploy-dev.yaml
   deploy:
     cloudrun:
+      projectid: clear-booking-470907-q6
       region: us-central1
+      service: cloudrun-sample-dev
 
 - name: qa
-  manifests:
-    rawYaml:
-    - deploy-qa.yaml
   deploy:
     cloudrun:
+      projectid: clear-booking-470907-q6
       region: us-central1
+      service: cloudrun-sample-qa
 
 - name: prod
-  manifests:
-    rawYaml:
-    - deploy-prod.yaml
   deploy:
     cloudrun:
+      projectid: clear-booking-470907-q6
       region: us-central1
+      service: cloudrun-sample-prod
