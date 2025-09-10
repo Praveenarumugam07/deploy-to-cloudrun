@@ -19,7 +19,7 @@ metadata:
   name: dev
 description: Cloud Run dev environment
 run:
-  location: projects/clear-booking-470907-q6/locations/asia-south1
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -27,7 +27,7 @@ metadata:
   name: qa
 description: Cloud Run qa environment
 run:
-  location: projects/clear-booking-470907-q6/locations/asia-south1
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
@@ -35,7 +35,7 @@ metadata:
   name: prod
 description: Cloud Run prod environment
 run:
-  location: projects/clear-booking-470907-q6/locations/asia-south1
+  location: projects/clear-booking-470907-q6/locations/us-central1
 ---
 apiVersion: deploy.cloud.google.com/v1
 kind: Automation
