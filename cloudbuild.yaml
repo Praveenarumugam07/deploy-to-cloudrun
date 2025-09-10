@@ -4,14 +4,14 @@ steps:
   args:
     [
       'build', '-t',
-      'asia-south1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}',
+      'asia-south1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:${_BUILD_ID}',
       '.'
     ]
 - name: 'gcr.io/cloud-builders/docker'
   args:
     [
       'push',
-      'asia-south1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}'
+      'asia-south1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:${_BUILD_ID}'
     ]
 
 # Step 2: Apply Cloud Deploy configuration
@@ -42,7 +42,7 @@ steps:
       "deploy", "releases", "create", "${_BUILD_ID}",
       "--delivery-pipeline", "cloudrun-pipeline",
       "--region", "asia-south1",
-      "--images", "app=asia-south1-docker.pkg.dev/clear-booking-470907-q6/ cloud-run-repo/cloudrun-app:${_BUILD_ID}",
+      "--images", "app=asia-south1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:${_BUILD_ID}",
       "--project=clear-booking-470907-q6"
     ]
 
