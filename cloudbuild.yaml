@@ -1,19 +1,27 @@
 # cloudbuild.yaml
-# Substitutions you should set in the trigger or override in manual builds
+# Cloud Build config: build Docker image, push to Artifact Registry, create Cloud Deploy release
+
 substitutions:
-  _REPO: cloud-run-repo
-  _REGION: us-central1
-  _PIPELINE: cloudrun-pipeline
-  _DEPLOY_REGION: us-central1
+  _REPO: cloud-run-repo         # Artifact Registry repository name
+  _REGION: us-central1          # Artifact Registry & Cloud Run region
+  _PIPELINE: cloudrun-pipeline  # Cloud Deploy pipeline name
+  _DEPLOY_REGION: us-central1   # Cloud Deploy region
+  _RELEASE: rel-$SHORT_SHA      # Release name for Cloud Deploy (uses short SHA)
 
 steps:
   - id: 'Build image'
     name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA', '.']
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA'
+      - '.'
 
   - id: 'Push image'
     name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA']
+    args:
+      - 'push'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA'
 
   - id: 'Create Cloud Deploy release'
     name: 'gcr.io/cloud-builders/gcloud'
@@ -22,8 +30,7 @@ steps:
       - '-c'
       - |
         IMAGE=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA
-        RELEASE=rel-${SHORT_SHA}
-        gcloud deploy releases create ${RELEASE} \
+        gcloud deploy releases create ${_RELEASE} \
           --delivery-pipeline=${_PIPELINE} \
           --region=${_DEPLOY_REGION} \
           --images=cloudrun-sample=${IMAGE} \
