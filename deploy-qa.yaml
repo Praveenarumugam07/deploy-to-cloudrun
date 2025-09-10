@@ -1,20 +1,12 @@
-# deploy-qa.yaml - Cloud Run service definition for QA
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: cloudrun-sample-qa
-  labels:
-    env: qa
+  namespace: default
 spec:
   template:
-    metadata:
-      annotations:
-        autoscaling.knative.dev/minScale: "0"
     spec:
       containers:
-        - image: cloudrun-sample
-          env:
-            - name: ENV
-              value: "qa"
-          ports:
-            - containerPort: 8080
+      - image: us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app
+        ports:
+        - containerPort: 8080
