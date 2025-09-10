@@ -1,41 +1,59 @@
+# Delivery pipeline
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
-  name: cloudrun-app-pipeline
-description: Cloud Deploy pipeline to Cloud Run
-
+  name: my-app-pipeline
+description: "pipeline dev -> staging -> prod"
 serialPipeline:
   stages:
     - targetId: dev
-      profiles: [dev]
-    - targetId: qa
-      profiles: [qa]
+      profiles: ["dev"]
+    - targetId: staging
+      profiles: ["staging"]
     - targetId: prod
-      profiles: [prod]
+      profiles: ["prod"]
 ---
-
+# Target: dev (auto-deploy)
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: dev
-description: Cloud Run dev environment
+description: "Cloud Run dev target"
 run:
-  location: asia-south1
+  location: projects/YOUR_PROJECT_ID_PLACEHOLDER/locations/YOUR_REGION_PLACEHOLDER
 ---
-
+# Target: staging (auto-promote destination)
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
-  name: qa
-description: Cloud Run QA environment
+  name: staging
+description: "Cloud Run staging target"
 run:
-  location: asia-south1
+  location: projects/YOUR_PROJECT_ID_PLACEHOLDER/locations/YOUR_REGION_PLACEHOLDER
 ---
-
+# Target: prod (requires approval)
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
   name: prod
-description: Cloud Run prod environment
+description: "Cloud Run production target (approval required)"
+requireApproval: true
 run:
-  location: asia-south1
+  location: projects/YOUR_PROJECT_ID_PLACEHOLDER/locations/YOUR_REGION_PLACEHOLDER
+---
+# Automation: promote release automatically from dev -> staging
+apiVersion: deploy.cloud.google.com/v1
+kind: Automation
+metadata:
+  name: my-app-automation/promote-dev-to-staging
+description: "Auto promote to staging after dev success"
+suspended: false
+serviceAccount: projects/YOUR_PROJECT_ID_PLACEHOLDER/serviceAccounts/cloud-deploy-automations@YOUR_PROJECT_ID_PLACEHOLDER.iam.gserviceaccount.com
+selector:
+  targets:
+    - id: dev
+rules:
+  - promoteReleaseRule:
+      name: auto-promote-to-staging
+      destinationTargetId: staging
+      wait: 30s
