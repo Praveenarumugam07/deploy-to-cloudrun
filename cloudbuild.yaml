@@ -1,58 +1,36 @@
+# cloudbuild.yaml
+# Substitutions you should set in the trigger or override in manual builds
 substitutions:
-  _REGION: us-central1          # change to your region
-  _REPOSITORY: my-repo          # name of Artifact Registry repo
-  _IMAGE_NAME: my-app           # image name
-  _PIPELINE_NAME: my-app-pipeline
+  _REPO: cloud-run-repo
+  _REGION: us-central1
+  _PIPELINE: cloudrun-pipeline
+  _DEPLOY_REGION: us-central1
 
 steps:
-# Step 1) Create Artifact Registry repository if it does not exist
-- name: 'gcr.io/cloud-builders/gcloud'
-  id: 'create-repo'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      if ! gcloud artifacts repositories describe ${_REPOSITORY} \
-        --location=${_REGION} --project=$PROJECT_ID >/dev/null 2>&1; then
-        echo "Creating Artifact Registry repo ${_REPOSITORY} in ${_REGION}"
-        gcloud artifacts repositories create ${_REPOSITORY} \
-          --repository-format=docker \
-          --location=${_REGION} \
-          --description="Docker repo for $_IMAGE_NAME"
-      else
-        echo "Repo ${_REPOSITORY} already exists"
-      fi
+  - id: 'Build image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA', '.']
 
-# Step 2) Build Docker image
-- name: 'gcr.io/cloud-builders/docker'
-  id: 'build'
-  args: [
-    'build', '-t',
-    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA',
-    '.'
-  ]
+  - id: 'Push image'
+    name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA']
 
-# Step 3) Push Docker image
-- name: 'gcr.io/cloud-builders/docker'
-  id: 'push'
-  args: [
-    'push',
-    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
-  ]
-
-# Step 4) Create Cloud Deploy release
-- name: 'gcr.io/cloud-builders/gcloud'
-  id: 'deploy'
-  entrypoint: 'bash'
-  args:
-    - '-c'
-    - |
-      IMAGE_URI=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA
-      gcloud deploy releases create ${_PIPELINE_NAME}-release-$SHORT_SHA \
-        --project=$PROJECT_ID \
-        --region=${_REGION} \
-        --delivery-pipeline=${_PIPELINE_NAME} \
-        --images=my-app-image=$IMAGE_URI
+  - id: 'Create Cloud Deploy release'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        IMAGE=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA
+        RELEASE=rel-${SHORT_SHA}
+        gcloud deploy releases create ${RELEASE} \
+          --delivery-pipeline=${_PIPELINE} \
+          --region=${_DEPLOY_REGION} \
+          --images=cloudrun-sample=${IMAGE} \
+          --project=$PROJECT_ID
 
 images:
-- '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE_NAME}:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/cloudrun-sample:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
