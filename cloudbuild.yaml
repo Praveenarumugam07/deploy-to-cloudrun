@@ -39,13 +39,14 @@ steps:
   entrypoint: 'gcloud'
   args:
     [
-      "deploy", "releases", "create", "${_BUILD_ID}",
+      "deploy", "releases", "create", "rel-${SHORT_SHA}",
       "--delivery-pipeline", "cloudrun-pipeline",
       "--region", "us-central1",
-      "--images", "app=us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:${_BUILD_ID}",
+      "--skaffold-file", "skaffold.yaml",
+      "--images", "us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app=us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-app:rel-${SHORT_SHA}",
       "--project=clear-booking-470907-q6"
     ]
-
+    
 options:
   logging: CLOUD_LOGGING_ONLY
 
