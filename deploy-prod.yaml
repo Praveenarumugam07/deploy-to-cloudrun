@@ -1,0 +1,20 @@
+# deploy-prod.yaml - Cloud Run service definition for PROD (requires manual approval in pipeline)
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: cloudrun-sample-prod
+  labels:
+    env: prod
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+    spec:
+      containers:
+        - image: cloudrun-sample
+          env:
+            - name: ENV
+              value: "prod"
+          ports:
+            - containerPort: 8080
