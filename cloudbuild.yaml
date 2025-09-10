@@ -51,6 +51,5 @@ steps:
         '--images', 'cloudrun-sample=us-central1-docker.pkg.dev/clear-booking-470907-q6/cloud-run-repo/cloudrun-sample:${_BUILD_ID}',
         '--project', 'clear-booking-470907-q6'
       ]
-
 options:
   logging: CLOUD_LOGGING_ONLY
