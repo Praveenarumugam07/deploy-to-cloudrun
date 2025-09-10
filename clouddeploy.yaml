@@ -45,7 +45,7 @@ metadata:
   name: cloudrun-pipeline/auto-promote-to-qa
 description: Automatically promote dev -> qa after successful dev rollout
 suspended: false
-serviceAccount: automation-sa@clear-booking-470907-q6.iam.gserviceaccount.com
+serviceAccount: 326372984052-compute@developer.gserviceaccount.com
 selector:
   targets:
     - id: qa
